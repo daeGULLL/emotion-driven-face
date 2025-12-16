@@ -14,4 +14,8 @@ pyserial
 numpy
 scipy
 
+# 음성 출력 필요 시
+google-genai 
+google-cloud-texttospeech
+
 Pillow
