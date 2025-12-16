@@ -1,6 +1,5 @@
 from test_face import detect_emotion_10s
 #from arduino_comm import send_eyebrow_angle
-
 import time
 import subprocess
 import atexit
@@ -29,14 +28,14 @@ EYEBROW_ANGLE = {
     "neutral": 90,
     "happy" : 120,
     "sad" : 60,
-    "angry" : 40,
+    "angry" : 160,
     "fear" : 130,
-    "surprise" : 160,
+    "surprise" : 20,
     "disgust" : 70,
 }
 
 EYEBROW_STEP = 2
-EYEBROW_STEP_DELAY = 0.03
+EYEBROW_STEP_DELAY = 0.02
 
 picam2 = Picamera2()
 config = picam2.create_preview_configuration(
@@ -55,6 +54,21 @@ proc = subprocess.Popen(
     text = True,
     bufsize = 1
 )
+
+tts_proc = subprocess.Popen(
+    ["/home/pi/.venv/bin/python", "/home/pi/ai_speak_module.py"],
+    stdin=subprocess.PIPE,
+    text=True,
+    bufsize=1
+)
+
+def speak_emotion_change(emotion: str):
+    tts_proc.stdin.write(f"CHANGE {emotion}\n")
+    tts_proc.stdin.flush()
+
+def speak_emotion_same():
+    tts_proc.stdin.write("SAME\n")
+    tts_proc.stdin.flush()
 
 def cleanup() :
     try :
@@ -81,9 +95,10 @@ def main_loop() :
     last_emotion = None
     last_change_time = 0.0
     current_eyebrow_angle = EYEBROW_ANGLE["neutral"]
+    is_initial_run = True
 
     while True :
-        emotion = detect_emotion_10s(picam2, window_sec=2) or "neutral"
+        emotion = detect_emotion_10s(picam2, window_sec=1) or "neutral"
         now = time.time()
         if emotion != last_emotion and (now - last_change_time) > EMOTION_DEBOUNCE_TIME:
             print(f"[EMOTION] {last_emotion} -> {emotion}")
@@ -91,7 +106,16 @@ def main_loop() :
 
             target_angle = EYEBROW_ANGLE.get(emotion, EYEBROW_ANGLE[emotion])
             send_eyebrow_angle(target_angle)
+            
+            speak_emotion_change(emotion)
+
             last_emotion = emotion
+            last_change_time = now
+            is_initial_run = False
+        elif emotion == last_emotion and not is_initial_run:
+            print(f"[EMOTION] Consistent: {emotion}")
+            speak_emotion_same()
+
             last_change_time = now
 
         time.sleep(POLL_INTERVAL)
@@ -99,6 +123,10 @@ def main_loop() :
 
 
 if __name__ == "__main__":
+ #   if not hasattr(ai_speak_module, 'prev_answer'):
+ #       ai_speak_module.prev_answer = ""
+  #      ai_speak_module.init_speak = True
+
     try :
         main_loop()
     except KeyboardInterrupt :
