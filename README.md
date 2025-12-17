@@ -48,14 +48,19 @@
 - Raspberry Pi
   - 카메라 입력 처리
   - 감정 인식
+  : test_face.py, mainController.py, models/*
   - 음성 응답 생성
+  : ai_speak_module.py
   - 전체 시스템을 조율하는 중앙 제어 역할
+  : mainController.py
 - Arduino
   - 서보모터 제어 전담
   - 단순한 각도 명령을 받아 물리적 움직임으로 변환
+  : dual_motor/dual_motor.ino
 - LED Controller (C / SPI)
   - MAX7219 기반 LED 매트릭스 제어
   - 감정 상태에 따른 프레임 애니메이션 출력
+  : mouthLED.exe, mouthLED.c
 
 각 구성 요소는 서로의 내부 구현을 알 필요 없이 동작합니다.
 
