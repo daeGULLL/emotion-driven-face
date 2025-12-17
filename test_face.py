@@ -11,44 +11,25 @@ from keras.models import load_model
 
 
 emotion_model_path = "./models/emotion_model.hdf5"
-
 face_cascade_path = "./models/haarcascade_frontalface_default.xml"
-
-
 
 labels = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
 
-
-
 face_cascade = cv2.CascadeClassifier(face_cascade_path)
-
 emotion_classifier = load_model(emotion_model_path, compile=False)
-
 emotion_target_size = emotion_classifier.input_shape[1:3]
 
-
-
 def clamp(v, lo, hi):
-
     return max(lo, min(hi, v))
 
-
-
 def preprocess_gray_face(gray_face, target_size):
-
     gray_face = cv2.resize(gray_face, target_size, interpolation=cv2.INTER_AREA)
-
     gray_face = gray_face.astype("float32") / 255.0
-
     gray_face = (gray_face - 0.5) * 2.0
-
     gray_face = np.expand_dims(gray_face, 0)
-
     gray_face = np.expand_dims(gray_face, -1)
 
     return gray_face
-
-
 
 def detect_emotion_10s(picam2, window_sec=5, show_gui=True):
     start_time = time.time()
@@ -56,6 +37,7 @@ def detect_emotion_10s(picam2, window_sec=5, show_gui=True):
 
     while time.time() - start_time < window_sec:
         frame = picam2.capture_array()
+        frame = cv2.flip(frame, -1)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
